@@ -10,3 +10,7 @@ from parse_module import translate
 
 app = Flask(__name__)
 
+@app.route("/", methods=["GET", "POST"])
+def translate_page():
+    return "Translator Web Interface"
+
