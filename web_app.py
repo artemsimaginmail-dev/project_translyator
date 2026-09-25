@@ -22,3 +22,5 @@ def main() -> int:
     app.run(host=args.host, port=args.port, debug=False, use_reloader=False)
     return 0
 
+if __name__ == "__main__":
+    raise SystemExit(main())
