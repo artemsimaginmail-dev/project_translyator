@@ -10,9 +10,51 @@ from parse_module import translate
 
 app = Flask(__name__)
 
+TEMPLATE = """
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+</head>
+<body>
+  <main class="wrap">
+    <section class="panel">
+      <h1>{{ title }}</h1>
+      <p>Интерфейс транслятора</p>
+      <form method="post">
+        <div class="grid">
+          <label>Исходная программа
+            <textarea name="source">{{ source_text }}</textarea>
+          </label>
+          <label>Результат
+            <pre>{{ output }}</pre>
+          </label>
+        </div>
+        <p><button type="submit">Сформировать результат</button></p>
+      </form>
+      <h2>Диагностика</h2>
+      {% if diagnostics %}
+        <ul>{% for item in diagnostics %}<li class="bad">{{ item }}</li>{% endfor %}</ul>
+      {% else %}
+        <p class="ok">Ошибок не обнаружено</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>
+"""
+
 @app.route("/", methods=["GET", "POST"])
 def translate_page():
-    return "Translator Web Interface"
+    source_text = request.form.get("source", default_source())
+
+    return render_template_string(
+        TEMPLATE,
+        title=VARIANT.title,        
+        source_text=source_text,
+        output = "Результат трансляции"
+    ) 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Translator Web Interface")
