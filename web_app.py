@@ -10,6 +10,10 @@ from parse_module import translate
 
 app = Flask(__name__)
 
+def default_source() -> str:
+    path = Path(__file__).with_name("source.txt")
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
 TEMPLATE = """
 <!doctype html>
 <html lang="ru">
@@ -48,12 +52,18 @@ TEMPLATE = """
 @app.route("/", methods=["GET", "POST"])
 def translate_page():
     source_text = request.form.get("source", default_source())
-
+    result = translate(source_text, VARIANT)
+    diagnostics = result.messages
+    output = result.output
+    if diagnostics:
+        # при наличии ошибок результат трансляции не формируется
+        output = "Трансляция не выполнена: устраните ошибки в исходном тексте и повторите запуск."   
     return render_template_string(
         TEMPLATE,
         title=VARIANT.title,        
         source_text=source_text,
-        output = "Результат трансляции"
+        output=output,
+        diagnostics=diagnostics,
     ) 
 
 def main() -> int:
