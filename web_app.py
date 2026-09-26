@@ -10,6 +10,8 @@ from parse_module import translate
 
 app = Flask(__name__)
 
+CSS = 'body{font-family:Inter,Arial,sans-serif;background:#18181b;color:#fafafa;margin:0}.wrap{max-width:1260px;margin:24px auto;padding:0 20px}.panel{background:#27272a;border-radius:22px;padding:22px}.grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:18px}textarea,pre{width:100%;min-height:380px;box-sizing:border-box;background:#09090b;color:#fafafa;border:1px solid #52525b;border-radius:14px;padding:14px;font:14px SFMono-Regular,Menlo,monospace}button{background:#f97316;color:#111827;border:0;border-radius:12px;padding:11px 20px;font-weight:800}.bad{color:#fb7185}.ok{color:#34d399}' 
+
 def default_source() -> str:
     path = Path(__file__).with_name("source.txt")
     return path.read_text(encoding="utf-8") if path.exists() else ""
@@ -20,6 +22,8 @@ TEMPLATE = """
 <head>
   <meta charset="utf-8">
   <title>{{ title }}</title>
+  <style>{{ css }}</style>
+  <style>textarea,pre{max-height:430px;overflow:auto}</style>
 </head>
 <body>
   <main class="wrap">
@@ -61,6 +65,7 @@ def translate_page():
     return render_template_string(
         TEMPLATE,
         title=VARIANT.title,        
+        css=CSS,
         source_text=source_text,
         output=output,
         diagnostics=diagnostics,
