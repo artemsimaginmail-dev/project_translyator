@@ -56,3 +56,27 @@ WORD_RE = re.compile(
      re.UNICODE,
  )
 
+def source_to_clean_text(source):
+    
+    # Замена нестандартных кавычек
+    replacements = {
+        '"': '"', '"': '"', "„": '"',
+        "'": "'", "'": "'",
+    }
+    
+    for old, new in replacements.items():
+        source = source.replace(old, new)
+    
+    # Склеивание строк, разбитых переносом
+    raw_lines = source.splitlines()
+    glued: list[str] = []
+     
+    for line in raw_lines:
+        stripped = line.strip()
+        if glued and glued[-1].rstrip().endswith(("(", ",")):
+            glued[-1] = glued[-1].rstrip() + " "+ stripped
+            continue
+        glued.append(line)
+     
+    return "\n".join(glued)
+
