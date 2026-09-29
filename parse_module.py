@@ -80,3 +80,25 @@ def source_to_clean_text(source):
      
     return "\n".join(glued)
 
+def lex(source):
+
+    scanned: list[Atom] = []
+    messages: list[str] = []
+
+    for src_line, line in enumerate(source.splitlines(), start=1):
+        for match in WORD_RE.finditer(line):
+            kind = match.lastgroup or "ident"
+            value = match.group()
+            
+            if kind == "space":
+                continue
+    
+            src_col = match.start() + 1
+            
+            if kind == "ident" and value.lower() in TERMS:
+                kind = "keyword"
+             
+            scanned.append(Atom(kind, value, src_line, src_col))
+     
+    return scanned, messages
+
