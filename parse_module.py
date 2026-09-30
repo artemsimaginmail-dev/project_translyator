@@ -32,8 +32,12 @@ class Outcome:
      output: str
  
 TERMS = {
-     "program", "var", "begin", "end", "if", "then", "else",
-     "integer", "real", "read", "write", "writeln"
+    "accept", "and", "begin", "do", "double", "else", "end", "float", "if",
+    "int", "integer", "or", "printf", "program", "read", "readln", "real",
+    "scanf", "then", "type", "var", "write", "writeln", "ввод", "вещественные",
+    "вывести", "вывод", "выполнить", "выполнять", "если", "и", "или", "иначе",
+    "конец", "начало", "передача", "переменные", "печатать", "программа", "то",
+    "целые", "читать",
  }
 
 PREDEFINED = {"sin", "cos", "exp", "ln", "log", "sqrt", "abs", "fabs"}
