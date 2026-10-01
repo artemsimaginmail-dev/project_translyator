@@ -60,7 +60,7 @@ WORD_RE = re.compile(
      re.UNICODE,
  )
 
-def source_to_clean_text(source):
+def source_to_clean_text(source: str) -> str:
     
     # Замена нестандартных кавычек
     replacements = {
@@ -84,7 +84,7 @@ def source_to_clean_text(source):
      
     return "\n".join(glued)
 
-def lex(source):
+def lex(source:  str) -> tuple[list[Atom], list[str]]:    
 
     scanned: list[Atom] = []
     messages: list[str] = []
