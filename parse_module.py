@@ -53,7 +53,7 @@ KIND_WORDS = {
 
 WORD_RE = re.compile(
      r"(?P<ident>[A-Za-z_][A-Za-z_0-9]*)|"
-     r"(?P<number>\d+)|"
+     r"(?P<number>\d+(?:[.,]\d+)?)|"
      r"(?P<op>[+\-*/=])|"
      r"(?P<punc>[;:,()])|"
      r"(?P<space>\s+)",
