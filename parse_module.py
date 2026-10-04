@@ -97,7 +97,14 @@ def lex(source:  str) -> tuple[list[Atom], list[str]]:
             
             if kind == "space":
                 continue
-    
+
+            # Обработка недопустимых символов
+            if kind == "bad":
+              messages.append(
+                  f"Ошибка лексического анализа: запрещённый символ {value!r} в строке {src_line}, позиция {match.start() + 1}"
+              )
+              continue
+
             src_col = match.start() + 1
             
             if kind == "ident" and value.lower() in TERMS:
