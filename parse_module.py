@@ -61,8 +61,19 @@ WORD_RE = re.compile(
      re.UNICODE,
  )
 
+def _strip_comments(source: str) -> str:
+    """Удаление комментариев из исходного кода"""
+    lines = []
+    for line in source.splitlines():
+        if "//" in line:
+            line = line[:line.index("//")]
+        lines.append(line)
+    return "\n".join(lines)
+
 def source_to_clean_text(source: str) -> str:
-    
+
+    source = _strip_comments(source)
+
     # Замена нестандартных кавычек
     replacements = {
         '"': '"', '"': '"', "„": '"',
