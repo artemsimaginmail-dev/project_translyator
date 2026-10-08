@@ -128,3 +128,8 @@ def lex(source:  str) -> tuple[list[Atom], list[str]]:
      
     return scanned, messages
 
+def _front(source: str):
+   normalized = source_to_clean_text(source)
+   scanned, lex_diag = lex(normalized)
+   return normalized, scanned, list(lex_diag)
+
