@@ -98,6 +98,9 @@ def source_to_clean_text(source: str) -> str:
 
 def lex(source:  str) -> tuple[list[Atom], list[str]]:    
 
+    if not source or not source.strip():
+        return [], ["Предупреждение: исходная программа пуста"]
+
     scanned: list[Atom] = []
     messages: list[str] = []
 
