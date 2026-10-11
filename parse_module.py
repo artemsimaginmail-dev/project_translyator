@@ -13,7 +13,13 @@ def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
     messages: list[str] = []
     normalized = source_to_clean_text(source)
     lines = [line.strip() for line in normalized.splitlines() if line.strip()]
-    
+
+    def add_name(name: str, kind: str, src_line: int) -> None:        
+        low = name.lower()
+        if low in TERMS or low in PREDEFINED:
+            return
+        symbols[name] = kind
+
     in_var_block = False
   
     for src_line, line in enumerate(lines, start=1):
