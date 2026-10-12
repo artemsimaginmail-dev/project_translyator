@@ -18,7 +18,12 @@ def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
         low = name.lower()
         if low in TERMS or low in PREDEFINED:
             return
-        symbols[name] = kind
+        if name in symbols:
+            messages.append(
+                f"Ошибка таблицы имён: повторное объявление имени {name!r} в строке {src_line}"
+            )
+        else:
+            symbols[name] = kind
 
     in_var_block = False
   
