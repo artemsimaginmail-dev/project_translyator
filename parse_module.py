@@ -42,5 +42,41 @@ def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
                  names_part, type_part = part.split(":", 1)
                  # Сохраняем информацию
                  pass 
-          
+
+    for src_line, line in enumerate(lines, start=1):
+        low = line.lower()
+        
+        if low.startswith(("begin", "начало")):
+            in_var_block = False
+            continue
+        
+        if low.startswith(("var", "vаг", "переменные")):
+            in_var_block = True
+            line = re.sub(r"^(var|vаг|переменные)\b", "", line, flags=re.I).strip()
+            low = line.lower()
+            if not line:
+                continue
+        
+        if in_var_block:
+            if ":" not in line:
+                continue
+            
+            for part in [p for p in line.split(";") if p.strip()]:
+                if ":" not in part:
+                    continue
+                
+                names_part, type_part = part.split(":", 1)
+                type_name = "real" if any(w in type_part.lower() for w in ["real", "double", "float", "веще"]) else "integer"
+                
+                for name in _pick_names(names_part):
+                    add_name(name, type_name, src_line)
+            continue
+        
+        m = re.match(r"^(real|integer|int|double|float)\s+(.+?);?$", line, flags=re.I)
+        if m:
+            kind = KIND_WORDS.get(m.group(1).lower(), "real")
+            for name in _pick_names(m.group(2)):
+                add_name(name, kind, src_line)
+            continue
+
     return symbols, messages
