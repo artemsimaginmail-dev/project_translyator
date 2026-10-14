@@ -1,6 +1,7 @@
 def _pick_names(text: str) -> list[str]:
     """Извлечение имен переменных из списка объявлений."""
     names = []
+    text = text.strip()
     for raw in re.split(r"[,\s]+", text):
         name = raw.strip(" ;:(){}[]")
         if re.fullmatch(r"[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*", name):
