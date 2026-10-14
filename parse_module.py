@@ -43,6 +43,12 @@ def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
                  # Сохраняем информацию
                  pass 
 
+          if "=" in line:
+                # Разделяем объявление и инициализацию
+                decl_part, init_part = line.split("=", 1)
+                # Обрабатываем decl_part как обычное объявление
+                line = decl_part
+
     for src_line, line in enumerate(lines, start=1):
         low = line.lower()
         
