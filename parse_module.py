@@ -8,6 +8,29 @@ def _pick_names(text: str) -> list[str]:
             names.append(name)
     return names
 
+def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[str], list[str]]:    
+    messages: list[str] = []
+    normalized = source_to_clean_text(source)
+    lines = _after_declarations(normalized.splitlines())
+    intermediate: list[str] = []
+    declared = set(symbols)
+    
+    for src_line, line in enumerate(lines, start=1):
+        clean = line.strip().rstrip(";")
+        if not clean:
+            continue
+        
+        intermediate.append(clean)
+        
+        # Проверяем все идентификаторы в операторе
+        for name in re.findall(r"[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*", clean):
+            if name not in declared and name.lower() not in TERMS:
+                messages.append(
+                    f"Ошибка таблицы имён: имя не найдено в описаниях {name!r} в операторе {src_line}"
+                )
+    
+    return intermediate, messages 
+
 def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
     """Построение таблицы символов на основе объявлений переменных"""
     symbols: dict[str, str] = {}
