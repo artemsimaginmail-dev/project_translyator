@@ -8,6 +8,39 @@ def _pick_names(text: str) -> list[str]:
             names.append(name)
     return names
 
+def _after_declarations(lines: Iterable[str]) -> list[str]:
+    result: list[str] = []
+    in_var_block = False
+    block_nesting = 0
+    
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            continue
+        
+        low = line.lower()
+        
+        if low.startswith(("begin", "начало")):
+            block_nesting += 1
+            in_var_block = False
+            continue
+        
+        if low.startswith(("end", "конец")):
+            block_nesting -= 1
+            continue
+        
+        if low.startswith(("var", "vаг", "переменные")):
+            in_var_block = True
+            continue
+        
+        if in_var_block and block_nesting == 0:
+            # Обрабатываем объявления только на верхнем уровне
+            continue
+        
+        result.append(line)
+    
+    return result
+
 def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[str], list[str]]:    
     messages: list[str] = []
     normalized = source_to_clean_text(source)
