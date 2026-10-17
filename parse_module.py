@@ -12,14 +12,22 @@ def _after_declarations(lines: Iterable[str]) -> list[str]:
     result: list[str] = []
     in_var_block = False
     block_nesting = 0
-    
+    program_ended = False   
+
     for raw in lines:
         line = raw.strip()
         if not line:
             continue
         
         low = line.lower()
+        # Проверяем конец программы
+        if low in {"end.", "end", "конец.", "конец"}:
+            program_ended = True
+            continue
         
+        if program_ended:
+            continue  # Пропускаем все после END
+
         if low.startswith(("begin", "начало")):
             block_nesting += 1
             in_var_block = False
