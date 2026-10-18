@@ -62,7 +62,19 @@ def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[st
             continue
         
         intermediate.append(clean)
-        
+
+        # Проверка типов в присваиваниях
+        if ":=" in line or "=" in line:
+            var_name = line.split(":=")[0].strip().split("=")[0].strip()
+            if var_name in symbols:
+                var_type = symbols[var_name]
+                expr = line.split(":=")[1].strip() if ":=" in line else line.split("=")[1].strip()
+                # Простая проверка: если в выражении есть число с точкой, а переменная integer - ошибка
+                if var_type == "integer" and "." in expr:
+                    messages.append(
+                        f"Ошибка типа: присваивание вещественного значения целой переменной {var_name!r} в строке {src_line}"
+                    )
+
         # Проверяем все идентификаторы в операторе
         for name in re.findall(r"[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*", clean):
             if name not in declared and name.lower() not in TERMS:
