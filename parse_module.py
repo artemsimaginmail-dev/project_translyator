@@ -110,7 +110,17 @@ def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
      if low.startswith(("var", "vаг", "переменные")):
         in_var_block = True
         continue
-      
+
+     # Обработка массивов
+     if "array" in line.lower() or "[" in line:
+         # Парсим объявление массива
+        array_match = re.match(r"(\w+)\s*:\s*array\s*\[(.+)\]\s+of\s+(\w+)", line, re.I)
+        if array_match:
+            name = array_match.group(1)
+            bounds = array_match.group(2)
+            elem_type = array_match.group(3)
+            symbols[name] = f"array[{bounds}] of {elem_type}"
+
      if in_var_block and ":" in line:
          # Парсим объявления
          parts = line.split(";")
