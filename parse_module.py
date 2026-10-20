@@ -78,9 +78,13 @@ def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[st
         # Проверяем все идентификаторы в операторе
         for name in re.findall(r"[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*", clean):
             if name not in declared and name.lower() not in TERMS:
-                messages.append(
-                    f"Ошибка таблицы имён: имя не найдено в описаниях {name!r} в операторе {src_line}"
-                )
+                    messages.append(
+                         f"Ошибка таблицы имён: повторное объявление имени {name!r} в строке {src_line}. "
+                         f"Предыдущее объявление в строке {symbols.get(name + '_line', 'неизвестно')}"
+                     )
+                     
+                     # Сохраняем строку объявления
+                    symbols[name + '_line'] = src_line
     
     return intermediate, messages 
 
