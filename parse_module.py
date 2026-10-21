@@ -55,7 +55,9 @@ def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[st
     lines = _after_declarations(normalized.splitlines())
     intermediate: list[str] = []
     declared = set(symbols)
-    
+    keywords = TERMS | set(KIND_WORDS.keys())
+    predefined = PREDEFINED
+
     for src_line, line in enumerate(lines, start=1):
         clean = line.strip().rstrip(";")
         if not clean:
@@ -77,7 +79,7 @@ def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[st
 
         # Проверяем все идентификаторы в операторе
         for name in re.findall(r"[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*", clean):
-            if name not in declared and name.lower() not in TERMS:
+                if name not in declared and name.lower() not in keywords:
                     messages.append(
                          f"Ошибка таблицы имён: повторное объявление имени {name!r} в строке {src_line}. "
                          f"Предыдущее объявление в строке {symbols.get(name + '_line', 'неизвестно')}"
