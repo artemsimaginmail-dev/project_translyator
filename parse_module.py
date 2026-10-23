@@ -90,6 +90,119 @@ def operators_from_source(source: str, symbols: dict[str, str]) -> tuple[list[st
     
     return intermediate, messages 
 
+_BRACKET_PAIRS = {"(": ")", "{": "}", "[": "]"}
+
+def syntax_messages(source: str) -> list[str]:
+    messages: list[str] = []
+    raw_lines = source.splitlines()
+    nonempty = [(idx + 1, ln.strip()) for idx, ln in enumerate(raw_lines) if ln.strip()]
+    if not nonempty:
+        return ["Ошибка структуры: исходная программа пуста"]
+
+    first_no, first = nonempty[0]
+    low_first = first.lower()
+    starts_program = low_first.startswith(("программа", "program", "procedure", "процедура", "main"))
+    if not starts_program:
+        messages.append(
+            f"Ошибка структуры: отсутствует заголовок программы в строке {first_no} (ожидалось 'программа' или 'program')"
+        )
+    elif low_first.startswith(("программа", "program")) and not re.search(r"[;]\s*$", first):
+        messages.append(
+            f"Ошибка структуры: отсутствует ';' после заголовка программы (строка {first_no})"
+        )
+
+    last_no, last = nonempty[-1]
+    if not last.lower().rstrip(".").rstrip(";").endswith(("конец", "end", "}")):
+        messages.append(
+            f"Ошибка структуры: программа не завершена ключевым словом 'конец'/'end' (последняя строка {last_no})"
+        )
+
+    stack: list[tuple[str, int, int]] = []
+    in_str: str | None = None
+    for src_line, line in enumerate(raw_lines, start=1):
+        for col, ch in enumerate(line, start=1):
+            if in_str:
+                if ch == in_str:
+                    in_str = None
+                continue
+            if ch in ("'", '"'):
+                in_str = ch
+                continue
+            if ch in _BRACKET_PAIRS:
+                stack.append((ch, src_line, col))
+            elif ch in _BRACKET_PAIRS.values():
+                if not stack:
+                    messages.append(
+                        f"Ошибка структуры: лишняя закрывающая скобка {ch!r} в строке {src_line}, позиция {col}"
+                    )
+                    continue
+                opening, ol, oc = stack.pop()
+                if _BRACKET_PAIRS[opening] != ch:
+                    messages.append(
+                        f"Ошибка структуры: непарная скобка — открыта {opening!r} в строке {ol}, "
+                        f"закрыта {ch!r} в строке {src_line}"
+                    )
+    for opening, ol, oc in stack:
+        messages.append(
+            f"Ошибка структуры: незакрытая скобка {opening!r} в строке {ol}, позиция {oc}"
+        )
+
+    begin_count = 0
+    end_count = 0
+    for src_line, line in enumerate(raw_lines, start=1):
+        low = line.lower()
+        for tok in re.findall(r"\b(begin|начало|end|конец)\b", low):
+            if tok in ("begin", "начало"):
+                begin_count += 1
+            else:
+                end_count += 1
+    if begin_count > end_count:
+        messages.append(
+            f"Ошибка структуры: число открывающих 'begin/начало' ({begin_count}) "
+            f"превышает число закрывающих 'end/конец' ({end_count})"
+        )
+    elif end_count > begin_count + 1:
+        messages.append(
+            f"Ошибка структуры: лишнее ключевое слово 'end/конец' "
+            f"(open={begin_count}, close={end_count})"
+        )
+
+    in_var_block = False
+    for src_line, raw in enumerate(raw_lines, start=1):
+        line = raw.strip()
+        if not line:
+            continue
+        low = line.lower()
+        if low.startswith(("begin", "начало")):
+            in_var_block = False
+            continue
+        if low.startswith(("var", "vаг", "переменные", "real", "integer", "int ", "double", "float", "label")):
+            in_var_block = True
+            if ":" in line and ";" not in line and "(" not in line:
+                next_lines = [raw_lines[i].strip() for i in range(src_line, min(src_line + 1, len(raw_lines)))]
+                if not any(nl.endswith(";") for nl in next_lines):
+                    messages.append(
+                        f"Ошибка структуры: отсутствует ';' в описании переменных (строка {src_line})"
+                    )
+            continue
+        if in_var_block and ":" in line and ";" not in line and "(" not in line:
+            messages.append(
+                f"Ошибка структуры: отсутствует ';' в описании переменных (строка {src_line})"
+            )
+            continue
+        if low in {"end", "end.", "конец", "конец.", "}", "begin", "начало", "{", "else", "иначе"}:
+            continue
+        if low.endswith((",", ";", "{", "}", ":", "(", ")")):
+            continue
+        if low.startswith(("if ", "если ", "for ", "цикл ", "while ", "пока ", "do ")):
+            continue
+        if re.match(r"^[A-Za-zА-Яа-я_]\w*\s*(:=|=)", line) and not line.endswith(";"):
+            messages.append(
+                f"Ошибка структуры: отсутствует ';' после оператора присваивания (строка {src_line})"
+            )
+
+    return messages
+
 def symbols_from_source(source: str) -> tuple[dict[str, str], list[str]]:
     """Построение таблицы символов на основе объявлений переменных"""
     symbols: dict[str, str] = {}
