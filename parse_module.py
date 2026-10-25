@@ -88,3 +88,9 @@ _ASM_RUNTIME = """
  READ_INT ENDP
  """
 
+def _asm_split_args(text: str) -> list[str]:
+    text = text.strip().strip("()").strip(";").strip()
+    if not text:
+        return []
+    return [p.strip() for p in text.split(",") if p.strip()]
+
