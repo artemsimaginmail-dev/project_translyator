@@ -94,3 +94,60 @@ def _asm_split_args(text: str) -> list[str]:
         return []
     return [p.strip() for p in text.split(",") if p.strip()]
 
+def _asm_tokenize_expr(expr: str) -> list[str]:
+    return re.findall(r"\d+|[A-Za-zА-Яа-я_][A-Za-zА-Яа-я_0-9]*|[+\-*/()]", expr)
+
+def _asm_compile_expr(expr: str) -> list[str]:
+    """Компиляция целочисленных выражений в инструкцию x86. Результат помещается в AX"""
+    scanned = _asm_tokenize_expr(expr)
+    if not scanned:
+        return [" XOR AX, AX"]
+    
+    pos = [0]
+    
+    def factor() -> list[str]:
+        if pos[0] >= len(scanned):
+            return [" XOR AX, AX"]
+        t = scanned[pos[0]]
+        if t == "(":
+            pos[0] += 1
+            code = expression()
+            if pos[0] < len(scanned) and scanned[pos[0]] == ")":
+                pos[0] += 1
+            return code
+        pos[0] += 1
+        return [f" MOV AX, {t}"]
+    
+    def term() -> list[str]:
+        code = factor()
+        while pos[0] < len(scanned) and scanned[pos[0]] in ("*", "/"):
+            op = scanned[pos[0]]
+            pos[0] += 1
+            code.append(" PUSH AX")
+            code += factor()
+            code.append(" MOV BX, AX")
+            code.append(" POP AX")
+            if op == "*":
+                code.append(" IMUL BX")
+            else:
+                code.append(" CWD")
+                code.append(" IDIV BX")
+        return code
+    
+    def expression() -> list[str]:
+        code = term()
+        while pos[0] < len(scanned) and scanned[pos[0]] in ("+", "-"):
+            op = scanned[pos[0]]
+            pos[0] += 1
+            code.append(" PUSH AX")
+            code += term()
+            code.append(" MOV BX, AX")
+            code.append(" POP AX")
+            if op == "+":
+                code.append(" ADD AX, BX")
+            else:
+                code.append(" SUB AX, BX")
+        return code
+    
+    return expression()
+
