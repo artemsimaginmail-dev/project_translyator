@@ -178,3 +178,9 @@ def _asm_compile_condition(cond: str, false_label: str) -> list[str]:
     code.append(f" {jump} {false_label}")
     return code
 
+def _asm_split_block(text: str) -> list[str]:
+    text = text.strip().strip("()").strip()
+    if not text:
+        return []
+    return [p.strip() for p in re.split(r";", text) if p.strip()] 
+
