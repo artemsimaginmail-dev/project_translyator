@@ -151,3 +151,30 @@ def _asm_compile_expr(expr: str) -> list[str]:
     
     return expression()
 
+_ASM_JUMP_FALSE = {
+    ">": "JLE", ">=": "JL", "<": "JGE", "<=": "JG",
+    "==": "JNE", "=": "JNE", "<>": "JE", "!=": "JE",
+}
+
+def _asm_compile_condition(cond: str, false_label: str) -> list[str]:
+    """Компиляция условия для x86 с переходом когда false"""
+    cond = cond.strip().strip("()").strip()
+    m = re.search(r"(>=|<=|<>|!=|==|>|<|=)", cond)
+    if not m:
+        return [f" JMP {false_label} ; условие нераспознано"]
+    
+    op = m.group(1)
+    left = cond[:m.start()].strip()
+    right = cond[m.end():].strip()
+    
+    code: list[str] = []
+    code += _asm_compile_expr(left)
+    code.append(" PUSH AX")
+    code += _asm_compile_expr(right)
+    code.append(" MOV BX, AX")
+    code.append(" POP AX")
+    code.append(" CMP AX, BX")
+    jump = _ASM_JUMP_FALSE.get(op, "JMP")
+    code.append(f" {jump} {false_label}")
+    return code
+
