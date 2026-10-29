@@ -184,3 +184,22 @@ def _asm_split_block(text: str) -> list[str]:
         return []
     return [p.strip() for p in re.split(r";", text) if p.strip()] 
 
+def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
+  clean = line.strip().rstrip(";").strip()
+  if not clean:
+    return []    
+    code: list[str] = []
+    
+   # Assignment
+  assign_match = re.match(r"^([A-Za-zА-Яа-я_]\w*)\s*(?:=|=)\s+(.+)$", clean)
+  if assign_match:
+     var = assign_match.group(1)
+     expr = assign_match.group(2).strip()
+     code.append(f" ; {clean}")
+     code += _asm_compile_expr(expr)
+     code.append(f" MOV {var}, AX")
+     return code
+      
+  code.append(f" ; {clean} -- не распознано")
+  return code
+
