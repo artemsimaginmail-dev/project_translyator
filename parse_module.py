@@ -189,7 +189,16 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
   if not clean:
     return []    
     code: list[str] = []
-    
+
+  # READ
+  for prefix in ("readln", "read", "scanf", "accept", "ввод", "читать"):
+      if re.match(rf"^{re.escape(prefix)}\b", clean, re.I):
+          rest = clean[len(prefix):]
+          for name in _asm_split_args(rest):
+              code.append(f" CALL READ_INT ; ввод значения {name}")
+              code.append(f" MOV {name}, AX")
+          return code
+
    # Assignment
   assign_match = re.match(r"^([A-Za-zА-Яа-я_]\w*)\s*(?:=|=)\s+(.+)$", clean)
   if assign_match:
