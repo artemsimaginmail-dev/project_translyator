@@ -259,3 +259,45 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
   code.append(f" ; {clean} -- не распознано")
   return code
 
+def operators_to_program(intermediate: list[str], symbols: dict[str, str]) -> str:
+    """Генерация полной программы на языке ассемблер"""
+    var_lines: list[str] = []
+    for name in symbols.keys():
+        var_lines.append(f" {name:<8} DW ?")
+    
+    ctx = {"if_no": 0}
+    body: list[str] = []
+    
+    for line in intermediate:
+        body += _asm_compile_statement(line, ctx)
+    
+    lines: list[str] = []
+    lines.append(";-------------------------------------------------------------------")
+    lines.append("; Сгенерированная программа на ассемблере x86 (MASM, 16-bit)")
+    lines.append(";-------------------------------------------------------------------")
+    lines.append("")
+    lines.append(".MODEL SMALL")
+    lines.append(".STACK 100h")
+    lines.append("")
+    lines.append(".DATA")
+    if var_lines:
+        lines += var_lines
+    else:
+        lines.append(" ; (нет переменных)")
+    lines.append("")
+    lines.append(".CODE")
+    lines.append("MAIN PROC")
+    lines.append(" MOV AX, @DATA")
+    lines.append(" MOV DS, AX")
+    lines.append("")
+    lines += body
+    lines.append("")
+    lines.append(" MOV AX, 4C00h ; завершение программы")
+    lines.append(" INT 21h")
+    lines.append("MAIN ENDP")
+    lines.append("")
+    lines.append(_ASM_RUNTIME.rstrip())
+    lines.append("")
+    lines.append("END MAIN")
+    
+    return "\n".join(lines)
