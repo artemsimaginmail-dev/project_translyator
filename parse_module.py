@@ -190,6 +190,22 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
     return []    
     code: list[str] = []
 
+  # Labels
+  label_match = re.match(r"^(\d+)\s*:\s*(.*)$", clean)
+  if label_match:
+      label_no, rest = label_match.group(1), label_match.group(2).strip()
+      code.append(f"UL{label_no}:")
+      if rest:
+          code += _asm_compile_statement(rest, ctx)
+      return code
+    
+  # GOTO
+  goto_match = re.match(r"^goto\s+(\w+)\s*$", clean, re.I)
+  if goto_match:
+      target_label = goto_match.group(1)
+      code.append(f" JMP UL{target_label}")
+      return code
+
   # READ
   for prefix in ("readln", "read", "scanf", "accept", "ввод", "читать"):
       if re.match(rf"^{re.escape(prefix)}\b", clean, re.I):
