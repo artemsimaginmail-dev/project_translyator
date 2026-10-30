@@ -199,6 +199,15 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
               code.append(f" MOV {name}, AX")
           return code
 
+  # WRITE
+  for prefix in ("writeln", "write", "printf", "type", "вывод", "вывести", "печатать", "передача"):
+      if re.match(rf"^{re.escape(prefix)}\b", clean, re.I):
+          rest = clean[len(prefix):]
+          for name in _asm_split_args(rest):
+              code += _asm_compile_expr(name)
+              code.append(" CALL WRITE_INT ; вывод значения")
+          return code    
+
    # Assignment
   assign_match = re.match(r"^([A-Za-zА-Яа-я_]\w*)\s*(?:=|=)\s+(.+)$", clean)
   if assign_match:
