@@ -199,7 +199,45 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
      code += _asm_compile_expr(expr)
      code.append(f" MOV {var}, AX")
      return code
-      
+
+  # IF-THEN-ELSE
+  if_match = re.match(r"^(?:if|если)\s+(.+?)\s+(?:then|то)\s+(.+)$", clean, re.I)
+  if if_match:
+    cond = if_match.group(1).strip()
+    tail = if_match.group(2).strip()
+    else_match = re.search(r"\b(иначе|else)\b", tail, re.I)
+    
+    ctx["if_no"] = ctx.get("if_no", 0) + 1
+    idx = ctx["if_no"]
+    else_label = f"ELSE_{idx:03d}"
+    end_label = f"ENDIF_{idx:03d}"
+    
+    if else_match:
+        then_part = tail[:else_match.start()].strip().rstrip(";").rstrip(",")
+        else_part = tail[else_match.end():].strip().rstrip(";").rstrip(",").strip("()")
+        
+        code.append(f" ; if {cond} then ... else ...")
+        code += _asm_compile_condition(cond, else_label)
+        
+        # Then part
+        for stmt in _asm_split_block(then_part):
+            code += _asm_compile_statement(stmt, ctx)
+        code.append(f" JMP {end_label}")
+        
+        # Else part
+        code.append(f"{else_label}:")
+        for stmt in _asm_split_block(else_part):
+            code += _asm_compile_statement(stmt, ctx)
+        code.append(f"{end_label}:")
+    else:
+        then_part = tail.strip().rstrip(";").rstrip(",")
+        code.append(f" ; if {cond} then ...")
+        code += _asm_compile_condition(cond, end_label)
+        for stmt in _asm_split_block(then_part):
+            code += _asm_compile_statement(stmt, ctx)
+        code.append(f"{end_label}:")
+    return code
+
   code.append(f" ; {clean} -- не распознано")
   return code
 
