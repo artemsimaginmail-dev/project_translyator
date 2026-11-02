@@ -190,6 +190,12 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
     return []    
     code: list[str] = []
 
+  # BEGIN/END block
+  if re.match(r"^(?:begin|начало)$", clean, re.I):
+      return []
+  if re.match(r"^(?:end|конец)$", clean, re.I):
+     return []
+
   # Labels
   label_match = re.match(r"^(\d+)\s*:\s*(.*)$", clean)
   if label_match:
