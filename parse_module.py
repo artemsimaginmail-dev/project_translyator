@@ -234,6 +234,25 @@ def _asm_compile_statement(line: str, ctx: dict) -> list[str]:
      code.append(f" MOV {var}, AX")
      return code
 
+  # WHILE loop
+  while_match = re.match(r"^(?:while|пока)\s+(.+?)\s+(?:do|выполнять)\s+(.+)$", clean, re.I)
+  if while_match:
+      cond = while_match.group(1).strip()
+      body = while_match.group(2).strip()
+        
+      ctx["while_no"] = ctx.get("while_no", 0) + 1
+      idx = ctx["while_no"]
+      start_label = f"WHILE_START_{idx:03d}"
+      end_label = f"WHILE_END_{idx:03d}"
+        
+      code.append(f"{start_label}:")
+      code += _asm_compile_condition(cond, end_label)
+      for stmt in _asm_split_block(body):
+          code += _asm_compile_statement(stmt, ctx)
+      code.append(f" JMP {start_label}")
+      code.append(f"{end_label}:")
+      return code
+
   # IF-THEN-ELSE
   if_match = re.match(r"^(?:if|если)\s+(.+?)\s+(?:then|то)\s+(.+)$", clean, re.I)
   if if_match:
