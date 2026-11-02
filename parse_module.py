@@ -102,7 +102,15 @@ def _asm_compile_expr(expr: str) -> list[str]:
     scanned = _asm_tokenize_expr(expr)
     if not scanned:
         return [" XOR AX, AX"]
+
+    # Оптимизация: константные выражения
+    if len(scanned) == 1 and scanned[0].lstrip('-').isdigit():
+        return [f" MOV AX, {scanned[0]}"]
     
+    # Оптимизация: простое присваивание переменной
+    if len(scanned) == 1 and re.match(r"[A-Za-zА-Яа-я_]\w*", scanned[0]):
+        return [f" MOV AX, {scanned[0]}"]
+
     pos = [0]
     
     def factor() -> list[str]:
