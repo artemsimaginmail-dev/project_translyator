@@ -7,3 +7,10 @@ def _print_report(result: Outcome, variant: Variant, show_tokens: bool) -> None:
             print(f"  {name:<10} {kind}")
     else:
         print("  (пусто)")
+    if show_tokens:
+        print("\n=== Поток токенов ===")
+        for token in result.scanned:
+            print(f"  {token.line}:{token.src_col}  {token.kind:<8} {token.value}")
+    print("\n=== Рабочий список операторов ===")
+    for row in result.intermediate:
+        print(f"  {row}")
