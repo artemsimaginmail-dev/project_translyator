@@ -14,3 +14,13 @@ def _print_report(result: Outcome, variant: Variant, show_tokens: bool) -> None:
     print("\n=== Рабочий список операторов ===")
     for row in result.intermediate:
         print(f"  {row}")
+    print("\n=== Сообщения анализатора ===")
+    if result.messages:
+        for item in result.messages:
+            print(f"  ! {item}")
+        print("\n=== Результат трансляции ===")
+        print("  Трансляция не выполнена: устраните ошибки в исходном тексте и повторите запуск.")
+    else:
+        print("  Замечаний нет")
+        print("\n=== Результат трансляции ===")
+        print(result.output) 
